@@ -1,0 +1,78 @@
+============================= test session starts ==============================
+platform linux -- Python 3.8.13, pytest-7.2.2, pluggy-1.0.0
+rootdir: /home/captain/Development/Code/phase-4/python-phase-4-code-challenge-pizza, configfile: pytest.ini
+plugins: Faker-18.3.0
+collected 11 items
+
+Flask application in app.py retrieves restaurants with GET request to /restaurants . [  9%]
+                                                                         [  9%]
+Flask application in app.py retrieves one restaurant using its ID with GET request to /restaurants/<int:id>. . [ 18%]
+                                                                         [ 18%]
+Flask application in app.py returns an error message and 404 status code with GET request to /restaurants/<int:id> by a non-existent ID. . [ 27%]
+                                                                         [ 27%]
+Flask application in app.py deletes restaurant with DELETE request to /restaurants/<int:id>. . [ 36%]
+                                                                         [ 36%]
+Flask application in app.py returns an error message and 404 status code with DELETE request to /restaurants/<int:id> by a non-existent ID. . [ 45%]
+                                                                         [ 45%]
+Flask application in app.py retrieves pizzas with GET request to /pizzas . [ 54%]
+                                                                         [ 54%]
+Flask application in app.py creates one restaurant_pizzas using a pizza_id, restaurant_id, and price with a POST request to /restaurant_pizzas. F [ 63%]
+                                                                         [ 63%]
+Flask application in app.py returns a 400 status code and error message if a POST request to /restaurant_pizzas fails. . [ 72%]
+                                                                         [ 72%]
+Class RestaurantPizza in models.py requires price between 1 and 30. .    [ 81%]
+Class RestaurantPizza in models.py requires price between 1 and 30 and fails when price is 0. . [ 90%]
+                                                                         [ 90%]
+Class RestaurantPizza in models.py requires price between 1 and 30 and fails when price is 31. . [100%]
+
+=================================== FAILURES ===================================
+____________________ TestApp.test_creates_restaurant_pizzas ____________________
+
+self = <app_test.TestApp object at 0x7fece62669a0>
+
+    def test_creates_restaurant_pizzas(self):
+        '''creates one restaurant_pizzas using a pizza_id, restaurant_id, and price with a POST request to /restaurant_pizzas.'''
+    
+        with app.app_context():
+            fake = Faker()
+            pizza = Pizza(name=fake.name(), ingredients=fake.sentence())
+            restaurant = Restaurant(name=fake.name(), address=fake.address())
+            db.session.add(pizza)
+            db.session.add(restaurant)
+            db.session.commit()
+    
+            # delete if existing in case price differs
+            restaurant_pizza = RestaurantPizza.query.filter_by(
+                pizza_id=pizza.id, restaurant_id=restaurant.id).one_or_none()
+            if restaurant_pizza:
+                db.session.delete(restaurant_pizza)
+                db.session.commit()
+    
+            response = app.test_client().post(
+                '/restaurant_pizzas',
+                json={
+                    "price": 3,
+                    "pizza_id": pizza.id,
+                    "restaurant_id": restaurant.id,
+                }
+            )
+    
+>           assert response.status_code == 201
+E           assert 400 == 201
+E            +  where 400 = <WrapperTestResponse streamed [400 BAD REQUEST]>.status_code
+
+server/testing/app_test.py:143: AssertionError
+----------------------------- Captured stderr call -----------------------------
+Error in create_restaurant_pizza: 'dict' object has no attribute 'startswith'
+=============================== warnings summary ===============================
+Flask application in app.py retrieves one restaurant using its ID with GET request to /restaurants/<int:id>.
+Flask application in app.py returns an error message and 404 status code with GET request to /restaurants/<int:id> by a non-existent ID.
+Flask application in app.py deletes restaurant with DELETE request to /restaurants/<int:id>.
+Flask application in app.py returns an error message and 404 status code with DELETE request to /restaurants/<int:id> by a non-existent ID.
+  /home/captain/Development/Code/phase-4/python-phase-4-code-challenge-pizza/server/app.py:33: LegacyAPIWarning: The Query.get() method is considered legacy as of the 1.x series of SQLAlchemy and becomes a legacy construct in 2.0. The method is now available as Session.get() (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
+    restaurant = Restaurant.query.get(id)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED Flask application in app.py creates one restaurant_pizzas using a pizza_id, restaurant_id, and price with a POST request to /restaurant_pizzas.
+=================== 1 failed, 10 passed, 4 warnings in 1.88s ===================
